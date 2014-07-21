@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+       xmlns:camel="http://camel.apache.org/schema/blueprint"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+       http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+
+  <camelContext trace="false" id="HouseContext" xmlns="http://camel.apache.org/schema/blueprint">
+    <propertyPlaceholder location="classpath:sql.properties,google.properties" id="properties"/>
+    <dataFormats>
+        <json library="Jackson" id="jack"/>
+    </dataFormats>
+    <route id="houseInfoRoute" customId="true">
+        <from uri="activemq:queue:house"/>
+        <unmarshal>
+            <jaxb partClass="org.blogdemo.homeloan.model.HouseInfo" prettyPrint="true" contextPath="org.blogdemo.homeloan.model"/>
+        </unmarshal>
+        <to uri="direct:schoolstart"/>
+        <log message="Found Schools ${body}"/>
+        <bean beanType="org.blogdemo.homeloan.processor.AppraisalProcessor" method="updateQuoteWithSchools(${headers.CamelmyHouseInfo}, ${body})"/>
+        <log message="${body}"/>
+        <setHeader headerName="houseNationalID">
+            <simple>${body.nationalID}</simple>
+        </setHeader>
+        <setHeader headerName="address">
+            <simple>${body.address}</simple>
+        </setHeader>
+        <setHeader headerName="bedroom">
+            <simple>${body.bedroom}</simple>
+        </setHeader>
+        <setHeader headerName="bathroom">
+            <simple>${body.bathroom}</simple>
+        </setHeader>
+        <setHeader headerName="landSize">
+            <simple>${body.landSize}</simple>
+        </setHeader>
+        <setHeader headerName="appraisedValue">
+            <simple>${body.appraisedValue}</simple>
+        </setHeader>
+        <to uri="sql:{{sql.insertHouseInfo}}"/>
+    </route>
+    <route id="schoolRoute" customId="true">
+        <from uri="direct:schoolstart"/>
+        <setHeader headerName="CamelmyHouseInfo">
+            <simple>${body}</simple>
+        </setHeader>
+        <bean beanType="org.blogdemo.homeloan.processor.HouseInfoProcessor" method="processAddress"/>
+        <recipientList streaming="true">
+            <simple>https4://maps.googleapis.com/maps/api/geocode/json?address=${body}&amp;amp;sensor=false&amp;amp;key={{googlekey}}</simple>
+        </recipientList>
+        <unmarshal ref="jack"/>
+        <bean beanType="org.blogdemo.homeloan.processor.HouseInfoProcessor" method="findGeoLocation"/>
+        <log message="lat and lng are ${body}"/>
+        <setHeader headerName="host">
+            <constant>maps.googleapis.com</constant>
+        </setHeader>
+        <recipientList streaming="true" delimiter="|">
+            <simple>https4://maps.googleapis.com/maps/api/place/radarsearch/json?location=${body}&amp;amp;radius=500&amp;amp;types=school&amp;amp;sensor=false&amp;amp;key={{googlekey}}</simple>
+        </recipientList>
+        <unmarshal ref="jack"/>
+        <setBody>
+            <simple>${body.size}</simple>
+        </setBody>
+    </route>
+</camelContext>
+
+</blueprint>
