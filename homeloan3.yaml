@@ -4,7 +4,6 @@ technologies:
 	-CXFRS Endpoint
 	-SQL Endpoint  
 	-Bundle packaging and deployment
-summary:  Visit http://wei-meilin.blogspot.tw/2014/07/red-hat-jboss-fuse-getting-started-home_21.html & http://wei-meilin.blogspot.tw/2014/07/red-hat-jboss-fuse-getting-started-home_22.html
-level: Beginner
+summary:  JBoss Fuse homeloan getting started demo
 product: fuse
 author: Christina Lin
