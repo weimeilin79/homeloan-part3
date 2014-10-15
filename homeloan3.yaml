@@ -1,9 +1,9 @@
 title: Home Loan Quick Start 4 & 5
 github_repo_url: https://github.com/weimeilin79/homeloan-part3 
 technologies: 
-	-CXFRS Endpoint
-	-SQL Endpoint  
-	-Bundle packaging and deployment
+ CXFRS Endpoint
+ SQL Endpoint  
+ Bundle packaging and deployment
 summary:  JBoss Fuse homeloan getting started demo
 Level: Beginner
 product: fuse
